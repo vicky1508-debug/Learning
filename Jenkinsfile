@@ -10,7 +10,7 @@ pipeline {
         stage('Build Image') {
             steps {
                 echo 'Building Docker Image...'
-                sh "docker build -t ${IMAGE_NAME} ."
+                sh "docker build -t ${Test1} ."
             }
         }
         
@@ -18,7 +18,7 @@ pipeline {
             steps {
                 echo 'Pushing to Docker Hub...'
                 sh "echo \$DOCKERHUB_CREDENTIALS_PSW | docker login -u \$DOCKERHUB_CREDENTIALS_USR --password-stdin"
-                sh "docker push ${IMAGE_NAME}"
+                sh "docker push ${Test2}"
             }
         }
         
