@@ -2,32 +2,38 @@ pipeline {
     agent any
     
     environment {
+        // This binds the Jenkins credential ID 'dockerhub-creds' to variables
         DOCKERHUB_CREDENTIALS = credentials('dockerhub-creds') 
         IMAGE_NAME = "vigneshvr46/my-first-app:v${env.BUILD_NUMBER}"
     }
 
     stages {
-        stage('Build Image') {
+        stage('Build Docker Image') {
             steps {
-                echo 'Building Docker Image...'
-                sh "docker build -t ${Test1} ."
+                script {
+                    echo "Building image: ${IMAGE_NAME}"
+                    sh "docker build -t ${IMAGE_NAME} ."
+                }
             }
         }
         
         stage('Push to Docker Hub') {
             steps {
-                echo 'Pushing to Docker Hub...'
-                sh "echo \$DOCKERHUB_CREDENTIALS_PSW | docker login -u \$DOCKERHUB_CREDENTIALS_USR --password-stdin"
-                sh "docker push ${Test2}"
+                script {
+                    // Use the automatically generated _USR and _PSW variables to log in securely
+                    sh "echo \$DOCKERHUB_CREDENTIALS_PSW | docker login -u \$DOCKERHUB_CREDENTIALS_USR --password-stdin"
+                    
+                    echo "Pushing image to Docker Hub..."
+                    sh "docker push ${IMAGE_NAME}"
+                }
             }
         }
-        
-        stage('Deploy to Server') {
-            steps {
-                echo 'Deploying to Docker Instance...'
-                sh "docker rm -f my-running-app || true"
-                sh "docker run -d -p 80:80 --name my-running-app ${IMAGE_NAME}"
-            }
+    }
+    
+    post {
+        always {
+            // Good practice: log out to prevent leaving credentials on the agent
+            sh "docker logout"
         }
     }
 }
